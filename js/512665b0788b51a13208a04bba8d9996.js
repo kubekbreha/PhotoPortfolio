@@ -5736,443 +5736,7 @@ function(e, i) {
         })
     }, c
 }),
-function(i, n) {
-    "function" == typeof define && define.amd ? define("infinite-scroll/js/core", ["ev-emitter/ev-emitter", "fizzy-ui-utils/utils"], function(t, e) {
-        return n(i, t, e)
-    }) : "object" == typeof module && module.exports ? module.exports = n(i, require("ev-emitter"), require("fizzy-ui-utils")) : i.InfiniteScroll = n(i, i.EvEmitter, i.fizzyUIUtils)
-}(window, function(e, t, s) {
-    function o(t, e) {
-        var i = s.getQueryElement(t);
-        if (!i) return void console.error("Bad element for InfiniteScroll: " + (i || t));
-        if (t = i, t.infiniteScrollGUID) {
-            var n = a[t.infiniteScrollGUID];
-            return n.option(e), n
-        }
-        this.element = t, this.options = s.extend({}, o.defaults), this.option(e), r && (this.$element = r(this.element)), this.create()
-    }
-    var r = e.jQuery,
-        a = {};
-    o.defaults = {}, o.create = {}, o.destroy = {};
-    var i = o.prototype;
-    s.extend(i, t.prototype);
-    var n = 0;
-    i.create = function() {
-        var t = this.guid = ++n;
-        if (this.element.infiniteScrollGUID = t, a[t] = this, this.pageIndex = 1, this.loadCount = 0, this.updateGetPath(), !this.getPath) return void console.error("Disabling InfiniteScroll");
-        this.updateGetAbsolutePath(), this.log("initialized", [this.element.className]), this.callOnInit();
-        for (var e in o.create) o.create[e].call(this)
-    }, i.option = function(t) {
-        s.extend(this.options, t)
-    }, i.callOnInit = function() {
-        var t = this.options.onInit;
-        t && t.call(this, this)
-    }, i.dispatchEvent = function(t, e, i) {
-        this.log(t, i);
-        var n = e ? [e].concat(i) : i;
-        if (this.emitEvent(t, n), r && this.$element) {
-            t += ".infiniteScroll";
-            var s = t;
-            if (e) {
-                var o = r.Event(e);
-                o.type = t, s = o
-            }
-            this.$element.trigger(s, i)
-        }
-    };
-    var l = {
-        initialized: function(t) {
-            return "on " + t
-        },
-        request: function(t) {
-            return "URL: " + t
-        },
-        load: function(t, e) {
-            return (t.title || "") + ". URL: " + e
-        },
-        error: function(t, e) {
-            return t + ". URL: " + e
-        },
-        append: function(t, e, i) {
-            return i.length + " items. URL: " + e
-        },
-        last: function(t, e) {
-            return "URL: " + e
-        },
-        history: function(t, e) {
-            return "URL: " + e
-        },
-        pageIndex: function(t, e) {
-            return "current page determined to be: " + t + " from " + e
-        }
-    };
-    i.log = function(t, e) {
-        if (this.options.debug) {
-            var i = "[InfiniteScroll] " + t,
-                n = l[t];
-            n && (i += ". " + n.apply(this, e)), console.log(i)
-        }
-    }, i.updateMeasurements = function() {
-        this.windowHeight = e.innerHeight;
-        var t = this.element.getBoundingClientRect();
-        this.top = t.top + e.pageYOffset
-    }, i.updateScroller = function() {
-        var t = this.options.elementScroll;
-        if (!t) return void(this.scroller = e);
-        if (this.scroller = t === !0 ? this.element : s.getQueryElement(t), !this.scroller) throw "Unable to find elementScroll: " + t
-    }, i.updateGetPath = function() {
-        var t = this.options.path;
-        if (!t) return void console.error("InfiniteScroll path option required. Set as: " + t);
-        var e = typeof t;
-        if ("function" == e) return void(this.getPath = t);
-        var i = "string" == e && t.match("{{#}}");
-        return i ? void this.updateGetPathTemplate(t) : void this.updateGetPathSelector(t)
-    }, i.updateGetPathTemplate = function(e) {
-        this.getPath = function() {
-            var t = this.pageIndex + 1;
-            return e.replace("{{#}}", t)
-        }.bind(this);
-        var t = e.replace("{{#}}", "(\\d\\d?\\d?)"),
-            i = new RegExp(t),
-            n = location.href.match(i);
-        n && (this.pageIndex = parseInt(n[1], 10), this.log("pageIndex", this.pageIndex, "template string"))
-    };
-    var h = [/^(.*?\/?page\/?)(\d\d?\d?)(.*?$)/, /^(.*?\/?\?page=)(\d\d?\d?)(.*?$)/, /(.*?)(\d\d?\d?)(?!.*\d)(.*?$)/];
-    return i.updateGetPathSelector = function(t) {
-        var e = document.querySelector(t);
-        if (!e) return void console.error("Bad InfiniteScroll path option. Next link not found: " + t);
-        for (var i, n, s = e.getAttribute("href"), o = 0; s && o < h.length; o++) {
-            n = h[o];
-            var r = s.match(n);
-            if (r) {
-                i = r.slice(1);
-                break
-            }
-        }
-        return i ? (this.isPathSelector = !0, this.getPath = function() {
-            var t = this.pageIndex + 1;
-            return i[0] + t + i[2]
-        }.bind(this), this.pageIndex = parseInt(i[1], 10) - 1, void this.log("pageIndex", [this.pageIndex, "next link"])) : void console.error("InfiniteScroll unable to parse next link href: " + s)
-    }, i.updateGetAbsolutePath = function() {
-        var t = this.getPath(),
-            e = t.match(/^http/) || t.match(/^\//);
-        if (e) return void(this.getAbsolutePath = this.getPath);
-        var i = location.pathname,
-            n = i.substring(0, i.lastIndexOf("/"));
-        this.getAbsolutePath = function() {
-            return n + "/" + this.getPath()
-        }
-    }, o.create.hideNav = function() {
-        var t = s.getQueryElement(this.options.hideNav);
-        t && (t.style.display = "none", this.nav = t)
-    }, o.destroy.hideNav = function() {
-        this.nav && (this.nav.style.display = "")
-    }, i.destroy = function() {
-        this.allOff();
-        for (var t in o.destroy) o.destroy[t].call(this);
-        delete this.element.infiniteScrollGUID, delete a[this.guid]
-    }, o.throttle = function(n, s) {
-        s = s || 200;
-        var o, r;
-        return function() {
-            var t = +new Date,
-                e = arguments,
-                i = function() {
-                    o = t, n.apply(this, e)
-                }.bind(this);
-            o && t < o + s ? (clearTimeout(r), r = setTimeout(i, s)) : i()
-        }
-    }, o.data = function(t) {
-        t = s.getQueryElement(t);
-        var e = t && t.infiniteScrollGUID;
-        return e && a[e]
-    }, o.setJQuery = function(t) {
-        r = t
-    }, s.htmlInit(o, "infinite-scroll"), r && r.bridget && r.bridget("infiniteScroll", o), o
-}),
-function(e, i) {
-    "function" == typeof define && define.amd ? define("infinite-scroll/js/page-load", ["./core"], function(t) {
-        return i(e, t)
-    }) : "object" == typeof module && module.exports ? module.exports = i(e, require("./core")) : i(e, e.InfiniteScroll)
-}(window, function(n, s) {
-    function a(t) {
-        for (var e = document.createDocumentFragment(), i = 0; t && i < t.length; i++) e.appendChild(t[i]);
-        return e
-    }
 
-    function i(t) {
-        for (var e = t.querySelectorAll("script"), i = 0; i < e.length; i++) {
-            var n = e[i],
-                s = document.createElement("script");
-            o(n, s), n.parentNode.replaceChild(s, n)
-        }
-    }
-
-    function o(t, e) {
-        for (var i = t.attributes, n = 0; n < i.length; n++) {
-            var s = i[n];
-            e.setAttribute(s.name, s.value)
-        }
-    }
-
-    function r(e, t, i, n) {
-        var s = new XMLHttpRequest;
-        s.open("GET", e, !0), s.responseType = t || "", s.setRequestHeader("X-Requested-With", "XMLHttpRequest"), s.onload = function() {
-            if (200 == s.status) i(s.response);
-            else {
-                var t = new Error(s.statusText);
-                n(t)
-            }
-        }, s.onerror = function() {
-            var t = new Error("Network error requesting " + e);
-            n(t)
-        }, s.send()
-    }
-    var t = s.prototype;
-    return s.defaults.loadOnScroll = !0, s.defaults.checkLastPage = !0, s.defaults.responseType = "document", s.create.pageLoad = function() {
-        this.canLoad = !0, this.on("scrollThreshold", this.onScrollThresholdLoad), this.on("load", this.checkLastPage), this.options.outlayer && this.on("append", this.onAppendOutlayer)
-    }, t.onScrollThresholdLoad = function() {
-        this.options.loadOnScroll && this.loadNextPage()
-    }, t.loadNextPage = function() {
-        if (!this.isLoading && this.canLoad) {
-            var e = this.getAbsolutePath();
-            this.isLoading = !0;
-            var t = function(t) {
-                    this.onPageLoad(t, e)
-                }.bind(this),
-                i = function(t) {
-                    this.onPageError(t, e)
-                }.bind(this);
-            r(e, this.options.responseType, t, i), this.dispatchEvent("request", null, [e])
-        }
-    }, t.onPageLoad = function(t, e) {
-        return this.options.append || (this.isLoading = !1), this.pageIndex++, this.loadCount++, this.dispatchEvent("load", null, [t, e]), this.appendNextPage(t, e), t
-    }, t.appendNextPage = function(t, e) {
-        var i = this.options.append,
-            n = "document" == this.options.responseType;
-        if (n && i) {
-            var s = t.querySelectorAll(i),
-                o = a(s),
-                r = function() {
-                    this.appendItems(s, o), this.isLoading = !1, this.dispatchEvent("append", null, [t, e, s])
-                }.bind(this);
-            this.options.outlayer ? this.appendOutlayerItems(o, r) : r()
-        }
-    }, t.appendItems = function(t, e) {
-        t && t.length && (e = e || a(t), i(e), this.element.appendChild(e))
-    }, t.appendOutlayerItems = function(t, e) {
-        var i = s.imagesLoaded || n.imagesLoaded;
-        return i ? void i(t, e) : (console.error("[InfiniteScroll] imagesLoaded required for outlayer option"), void(this.isLoading = !1))
-    }, t.onAppendOutlayer = function(t, e, i) {
-        this.options.outlayer.appended(i)
-    }, t.checkLastPage = function(t, e) {
-        var i = this.options.checkLastPage;
-        if (i) {
-            var n = this.options.path;
-            if ("function" == typeof n) {
-                var s = this.getPath();
-                if (!s) return void this.lastPageReached(t, e)
-            }
-            var o;
-            if ("string" == typeof i ? o = i : this.isPathSelector && (o = n), o && t.querySelector) {
-                var r = t.querySelector(o);
-                r || this.lastPageReached(t, e)
-            }
-        }
-    }, t.lastPageReached = function(t, e) {
-        this.canLoad = !1, this.dispatchEvent("last", null, [t, e])
-    }, t.onPageError = function(t, e) {
-        return this.isLoading = !1, this.canLoad = !1, this.dispatchEvent("error", null, [t, e]), t
-    }, s.create.prefill = function() {
-        if (this.options.prefill) {
-            var t = this.options.append;
-            if (!t) return void console.error("append option required for prefill. Set as :" + t);
-            this.updateMeasurements(), this.updateScroller(), this.isPrefilling = !0, this.on("append", this.prefill), this.once("error", this.stopPrefill), this.once("last", this.stopPrefill), this.prefill()
-        }
-    }, t.prefill = function() {
-        var t = this.getPrefillDistance();
-        this.isPrefilling = t >= 0, this.isPrefilling ? (this.log("prefill"), this.loadNextPage()) : this.stopPrefill()
-    }, t.getPrefillDistance = function() {
-        return this.options.elementScroll ? this.scroller.clientHeight - this.scroller.scrollHeight : this.windowHeight - this.element.clientHeight
-    }, t.stopPrefill = function() {
-        console.log("stopping prefill"), this.off("append", this.prefill)
-    }, s
-}),
-function(i, n) {
-    "function" == typeof define && define.amd ? define("infinite-scroll/js/scroll-watch", ["./core", "fizzy-ui-utils/utils"], function(t, e) {
-        return n(i, t, e)
-    }) : "object" == typeof module && module.exports ? module.exports = n(i, require("./core"), require("fizzy-ui-utils")) : n(i, i.InfiniteScroll, i.fizzyUIUtils)
-}(window, function(i, t, e) {
-    var n = t.prototype;
-    return t.defaults.scrollThreshold = 400, t.create.scrollWatch = function() {
-        this.pageScrollHandler = this.onPageScroll.bind(this), this.resizeHandler = this.onResize.bind(this);
-        var t = this.options.scrollThreshold,
-            e = t || 0 === t;
-        e && this.enableScrollWatch()
-    }, t.destroy.scrollWatch = function() {
-        this.disableScrollWatch()
-    }, n.enableScrollWatch = function() {
-        this.isScrollWatching || (this.isScrollWatching = !0, this.updateMeasurements(), this.updateScroller(), this.on("last", this.disableScrollWatch), this.bindScrollWatchEvents(!0))
-    }, n.disableScrollWatch = function() {
-        this.isScrollWatching && (this.bindScrollWatchEvents(!1), delete this.isScrollWatching)
-    }, n.bindScrollWatchEvents = function(t) {
-        var e = t ? "addEventListener" : "removeEventListener";
-        this.scroller[e]("scroll", this.pageScrollHandler), i[e]("resize", this.resizeHandler)
-    }, n.onPageScroll = t.throttle(function() {
-        var t = this.getBottomDistance();
-        t <= this.options.scrollThreshold && this.dispatchEvent("scrollThreshold")
-    }), n.getBottomDistance = function() {
-        return this.options.elementScroll ? this.getElementBottomDistance() : this.getWindowBottomDistance()
-    }, n.getWindowBottomDistance = function() {
-        var t = this.top + this.element.clientHeight,
-            e = i.pageYOffset + this.windowHeight;
-        return t - e
-    }, n.getElementBottomDistance = function() {
-        var t = this.scroller.scrollHeight,
-            e = this.scroller.scrollTop + this.scroller.clientHeight;
-        return t - e
-    }, n.onResize = function() {
-        this.updateMeasurements()
-    }, e.debounceMethod(t, "onResize", 150), t
-}),
-function(i, n) {
-    "function" == typeof define && define.amd ? define("infinite-scroll/js/history", ["./core", "fizzy-ui-utils/utils"], function(t, e) {
-        return n(i, t, e)
-    }) : "object" == typeof module && module.exports ? module.exports = n(i, require("./core"), require("fizzy-ui-utils")) : n(i, i.InfiniteScroll, i.fizzyUIUtils)
-}(window, function(n, t, e) {
-    var i = t.prototype;
-    t.defaults.history = "replace";
-    var o = document.createElement("a");
-    return t.create.history = function() {
-        if (this.options.history) {
-            o.href = this.getAbsolutePath();
-            var t = o.origin || o.protocol + "//" + o.host,
-                e = t == location.origin;
-            return e ? void(this.options.append ? this.createHistoryAppend() : this.createHistoryPageLoad()) : void console.error("[InfiniteScroll] cannot set history with different origin: " + o.origin + " on " + location.origin + " . History behavior disabled.")
-        }
-    }, i.createHistoryAppend = function() {
-        this.updateMeasurements(), this.updateScroller(), this.scrollPages = [{
-            top: 0,
-            path: location.href,
-            title: document.title
-        }], this.scrollPageIndex = 0, this.scrollHistoryHandler = this.onScrollHistory.bind(this), this.unloadHandler = this.onUnload.bind(this), this.scroller.addEventListener("scroll", this.scrollHistoryHandler), this.on("append", this.onAppendHistory), this.bindHistoryAppendEvents(!0)
-    }, i.bindHistoryAppendEvents = function(t) {
-        var e = t ? "addEventListener" : "removeEventListener";
-        this.scroller[e]("scroll", this.scrollHistoryHandler), n[e]("unload", this.unloadHandler)
-    }, i.createHistoryPageLoad = function() {
-        this.on("load", this.onPageLoadHistory)
-    }, t.destroy.history = i.destroyHistory = function() {
-        var t = this.options.history && this.options.append;
-        t && this.bindHistoryAppendEvents(!1)
-    }, i.onAppendHistory = function(t, e, i) {
-        var n = i[0],
-            s = this.getElementScrollY(n);
-        o.href = e, this.scrollPages.push({
-            top: s,
-            path: o.href,
-            title: t.title
-        })
-    }, i.getElementScrollY = function(t) {
-        return this.options.elementScroll ? this.getElementElementScrollY(t) : this.getElementWindowScrollY(t)
-    }, i.getElementWindowScrollY = function(t) {
-        var e = t.getBoundingClientRect();
-        return e.top + n.pageYOffset
-    }, i.getElementElementScrollY = function(t) {
-        return t.offsetTop - this.top
-    }, i.onScrollHistory = function() {
-        for (var t, e, i = this.getScrollViewY(), n = 0; n < this.scrollPages.length; n++) {
-            var s = this.scrollPages[n];
-            if (s.top >= i) break;
-            t = n, e = s
-        }
-        t != this.scrollPageIndex && (this.scrollPageIndex = t, this.setHistory(e.title, e.path))
-    }, e.debounceMethod(t, "onScrollHistory", 150), i.getScrollViewY = function() {
-        return this.options.elementScroll ? this.scroller.scrollTop + this.scroller.clientHeight / 2 : n.pageYOffset + this.windowHeight / 2
-    }, i.setHistory = function(t, e) {
-        var i = this.options.history,
-            n = i && history[i + "State"];
-        n && (history[i + "State"](null, t, e), this.options.historyTitle && (document.title = t), this.dispatchEvent("history", null, [t, e]))
-    }, i.onUnload = function() {
-        var t = this.scrollPageIndex;
-        if (0 !== t) {
-            var e = this.scrollPages[t],
-                i = n.pageYOffset - e.top + this.top;
-            this.destroyHistory(), scrollTo(0, i)
-        }
-    }, i.onPageLoadHistory = function(t, e) {
-        this.setHistory(t.title, e)
-    }, t
-}),
-function(i, n) {
-    "function" == typeof define && define.amd ? define("infinite-scroll/js/button", ["./core", "fizzy-ui-utils/utils"], function(t, e) {
-        return n(i, t, e)
-    }) : "object" == typeof module && module.exports ? module.exports = n(i, require("./core"), require("fizzy-ui-utils")) : n(i, i.InfiniteScroll, i.fizzyUIUtils)
-}(window, function(t, e, i) {
-    function n(t, e) {
-        this.element = t, this.infScroll = e, this.clickHandler = this.onClick.bind(this), this.element.addEventListener("click", this.clickHandler), e.on("request", this.disable.bind(this)), e.on("load", this.enable.bind(this)), e.on("error", this.hide.bind(this)), e.on("last", this.hide.bind(this))
-    }
-    return e.create.button = function() {
-        var t = i.getQueryElement(this.options.button);
-        if (t) return void(this.button = new n(t, this))
-    }, e.destroy.button = function() {
-        this.button && this.button.destroy()
-    }, n.prototype.onClick = function(t) {
-        t.preventDefault(), this.infScroll.loadNextPage()
-    }, n.prototype.enable = function() {
-        this.element.removeAttribute("disabled")
-    }, n.prototype.disable = function() {
-        this.element.disabled = "disabled"
-    }, n.prototype.hide = function() {
-        this.element.style.display = "none"
-    }, n.prototype.destroy = function() {
-        this.element.removeEventListener("click", this.clickHandler)
-    }, e.Button = n, e
-}),
-function(i, n) {
-    "function" == typeof define && define.amd ? define("infinite-scroll/js/status", ["./core", "fizzy-ui-utils/utils"], function(t, e) {
-        return n(i, t, e)
-    }) : "object" == typeof module && module.exports ? module.exports = n(i, require("./core"), require("fizzy-ui-utils")) : n(i, i.InfiniteScroll, i.fizzyUIUtils)
-}(window, function(t, e, i) {
-    function n(t) {
-        o(t, "none")
-    }
-
-    function s(t) {
-        o(t, "block")
-    }
-
-    function o(t, e) {
-        t && (t.style.display = e)
-    }
-    var r = e.prototype;
-    return e.create.status = function() {
-        var t = i.getQueryElement(this.options.status);
-        t && (this.statusElement = t, this.statusEventElements = {
-            request: t.querySelector(".infinite-scroll-request"),
-            error: t.querySelector(".infinite-scroll-error"),
-            last: t.querySelector(".infinite-scroll-last")
-        }, this.on("request", this.showRequestStatus), this.on("error", this.showErrorStatus), this.on("last", this.showLastStatus), this.bindHideStatus("on"))
-    }, r.bindHideStatus = function(t) {
-        var e = this.options.append ? "append" : "load";
-        this[t](e, this.hideAllStatus)
-    }, r.showRequestStatus = function() {
-        this.showStatus("request")
-    }, r.showErrorStatus = function() {
-        this.showStatus("error")
-    }, r.showLastStatus = function() {
-        this.showStatus("last"), this.bindHideStatus("off")
-    }, r.showStatus = function(t) {
-        s(this.statusElement), this.hideStatusEventElements();
-        var e = this.statusEventElements[t];
-        s(e)
-    }, r.hideAllStatus = function() {
-        n(this.statusElement), this.hideStatusEventElements()
-    }, r.hideStatusEventElements = function() {
-        for (var t in this.statusEventElements) {
-            var e = this.statusEventElements[t];
-            n(e)
-        }
-    }, e
-}),
 function(t, e) {
     "function" == typeof define && define.amd ? define(["infinite-scroll/js/core", "infinite-scroll/js/page-load", "infinite-scroll/js/scroll-watch", "infinite-scroll/js/history", "infinite-scroll/js/button", "infinite-scroll/js/status"], e) : "object" == typeof module && module.exports && (module.exports = e(require("./core"), require("./page-load"), require("./scroll-watch"), require("./history"), require("./button"), require("./status")))
 }(window, function(t) {
@@ -11390,7 +10954,7 @@ function main() {
     var t = document.getElementById("fake3dCanvas");
     if ($("#fake3dCanvas").length) {
         var e = function t() {
-            twgl.resizeCanvasToDisplaySize(s.canvas);
+            // twgl.resizeCanvasToDisplaySize(s.canvas);
             s.viewport(0, 0, s.canvas.width, s.canvas.height);
             s.clearColor(0, 0, 0, 0);
             s.clear(s.COLOR_BUFFER_BIT);
@@ -11401,13 +10965,13 @@ function main() {
             var n = m3.scaling(i / e, -1);
             u[0] += (c[0] - u[0]) * .05;
             u[1] += (c[1] - u[1]) * .05;
-            twgl.setUniforms(l, {
-                u_matrix: n,
-                u_originalImage: r,
-                u_mapImage: a,
-                u_mouse: u
-            });
-            twgl.drawBufferInfo(s, h);
+            // twgl.setUniforms(l, {
+            //     u_matrix: n,
+            //     u_originalImage: r,
+            //     u_mapImage: a,
+            //     u_mouse: u
+            // });
+            // twgl.drawBufferInfo(s, h);
             requestAnimationFrame(t)
         };
         var s = t.getContext("webgl");
@@ -11418,18 +10982,18 @@ function main() {
             width: 1,
             height: 1
         };
-        var r = twgl.createTexture(s, {
-            src: $(t).attr("data-aboutimg"),
-            crossOrigin: ""
-        }, function(t, e, i) {
-            o = i
-        });
-        var a = twgl.createTexture(s, {
-            src: $(t).attr("data-aboutdepthimg"),
-            crossOrigin: ""
-        });
-        var l = twgl.createProgramInfo(s, ["vs", "fs"]);
-        var h = twgl.primitives.createXYQuadBufferInfo(s);
+        // var r = twgl.createTexture(s, {
+        //     src: $(t).attr("data-aboutimg"),
+        //     crossOrigin: ""
+        // }, function(t, e, i) {
+        //     o = i
+        // });
+        // var a = twgl.createTexture(s, {
+        //     src: $(t).attr("data-aboutdepthimg"),
+        //     crossOrigin: ""
+        // });
+        // var l = twgl.createProgramInfo(s, ["vs", "fs"]);
+        // var h = twgl.primitives.createXYQuadBufferInfo(s);
         var c = [0, 0];
         document.addEventListener("mousemove", function(t) {
             c[0] = (t.clientX / s.canvas.clientWidth * 1 - 1) * -.01;
@@ -11642,29 +11206,29 @@ jQuery(function(o) {
             }
         }
         o(window).trigger("resize");
-        if (o(".infinityWrap").length) {
-            dataStore.grid.infiniteScroll({
-                path: ".next",
-                append: ".infinityWrap .item",
-                status: ".page-load-status",
-                hideNav: ".page-numbers",
-                history: !1,
-                prefill: !0,
-                scrollThreshold: 1e3
-            });
-            dataStore.grid.on("append.infiniteScroll", function(t, e, i, n) {
-                o(n).each(function() {
-                    o(this).addClass("vis")
-                });
-                o(".lazy").lazyload({
-                    threshold: 1e3,
-                    effect: "fadeIn",
-                    load: function(t, e) {
-                        o(this).removeClass("lazy")
-                    }
-                })
-            })
-        }
+        // if (o(".infinityWrap").length) {
+        //     dataStore.grid.infiniteScroll({
+        //         path: ".next",
+        //         append: ".infinityWrap .item",
+        //         status: ".page-load-status",
+        //         hideNav: ".page-numbers",
+        //         history: !1,
+        //         prefill: !0,
+        //         scrollThreshold: 1e3
+        //     });
+        //     dataStore.grid.on("append.infiniteScroll", function(t, e, i, n) {
+        //         o(n).each(function() {
+        //             o(this).addClass("vis")
+        //         });
+        //         o(".lazy").lazyload({
+        //             threshold: 1e3,
+        //             effect: "fadeIn",
+        //             load: function(t, e) {
+        //                 o(this).removeClass("lazy")
+        //             }
+        //         })
+        //     })
+        // }
     })
 });
 
